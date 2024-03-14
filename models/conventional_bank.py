@@ -84,6 +84,7 @@ class ConventionalModel:
         
         self.bank_loan = initial_capital * ((1 + interest_rate)**loan_period)
         self.business_loan = -self.bank_loan
+        self.status: int = 0
 
         # model values for analysis purposes
         self.model: dict[str: list[float]] = {
@@ -217,6 +218,8 @@ class ConventionalModel:
             case _:
                 print(f"UNKNOWN CASE")
 
+        self.status = status
+
         return (status, t, round(net_profit, 2), round(self.current_capital, 2), round(self.bank_loan, 2))
     
     # function to return simulation values
@@ -260,10 +263,10 @@ class ConventionalModel:
             (fig, ax1, ax2, ax3, ax4, ax5) : tuple[fig, Any]
         """
         t, initial_capital, current_capital, bank_loan, debt_payment, net_profit = self.model.values()
-        y_formatter = lambda x, pos : f'{int(x / 1000):,}k' if x >= 1000 else f'{x}'
+        y_formatter = lambda x, pos : f'{int(x / 1000):,}k' if (x >= 1000 or x<=-1000) else f'{x}'
 
         fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3, 2, figsize=(10, 10))
-        fig.suptitle("Conventional Model Simulation")
+        fig.suptitle(f"Conventional Model Simulation - {'SUCCESS' if self.status==1 else 'FAIL'}")
 
         ax1.plot(t, initial_capital)
         ax1.set(xlabel="time (months)", ylabel="Initial Capital")
