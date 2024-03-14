@@ -102,8 +102,8 @@ class IslamicModel:
 
         Returns
         -------
-            (status, t, net_profit, current_capital, bank_loan) : tuple[bool, int, float, float, float]\n
-                status = True if simulation succeeded, False otherwise.\n
+            (status, t, net_profit, current_capital, bank_loan) : tuple[int, int, float, float, float]\n
+                status = 1 if simulation suceeded, 2 if business is a loss model (failed), 3 if maximum simulation time is reached and debt is not paid (failed)\n
                 t = the time taken for simulation.\n
                 net_profit = final net profit after final bank payment.\n
                 current_capital = amount of capital owned entirely by the business.\n
