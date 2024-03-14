@@ -85,7 +85,7 @@ class IslamicModel:
         self.business_share = 1-bank_share
 
     # simulation function
-    def simulate(self, time_period: int, grace_period: int, verbose: bool = False) -> tuple[bool, int, float, float, float]:
+    def simulate(self, time_period: int, grace_period: int, verbose: bool = False) -> tuple[int, int, float, float, float]:
         """
         Simulates the business operating over a given time_period, t, from t=0 to t=time_period.
 

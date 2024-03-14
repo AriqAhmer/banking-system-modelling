@@ -81,7 +81,7 @@ class ConventionalModel:
         self.bank_loan = initial_capital * ((1 + interest_rate)**loan_period)
         self.business_loan = -self.bank_loan
 
-    def simulate(self, time_period: int, grace_period: int, verbose: bool = False) -> tuple[bool, int, float, float, float]:
+    def simulate(self, time_period: int, grace_period: int, verbose: bool = False) -> tuple[int, int, float, float, float]:
         """
         Simulates the business operating over a given time_period, t, from t=0 to t=time_period.
 
