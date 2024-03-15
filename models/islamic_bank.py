@@ -1,6 +1,7 @@
 # importing matplotlib for creating plots
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
+from typing import Callable
 
 class IslamicModel:
     """
@@ -17,11 +18,11 @@ class IslamicModel:
     current_capital : int
         The capital amount the business currently has before the venture begins.
 
-    profit_margin : float
-        The percentage profit margin on the goods traded.
+    profit_margin : float | callable
+        The percentage profit margin on the goods traded. Accepts a function which is time dependent with signature foo(t: int) -> float
     
-    expenses : float
-        The amount to be spent on expenses during operation of business.
+    expenses : float | callable
+        The amount to be spent on expenses during operation of business. Accepts a function which is time dependent with signature foo(t: int) -> float
 
     bank_fee : float
         The percentage profit the bank expects to make on the loaned amount.
@@ -30,11 +31,11 @@ class IslamicModel:
         The percentage of net profit given to the bank as a form of debt repayment. This is in terms of dividend 
         since the bank is in a profit/loss sharing parternship.
 
-    initial_capital_reinvestment : float
-        The amount from the initial_capital to be reinvested into the business.
+    initial_capital_reinvestment : float | callable
+        The amount from the initial_capital to be reinvested into the business. Accepts a function which is time dependent with signature foo(t: int) -> float
     
-    dividend_payment : float
-        The percentage of dividend expected to be paid to the business owner.
+    dividend_payment : float | Callable
+        The percentage of dividend expected to be paid to the business owner. Accepts a function which is time dependent with signature foo(t: int) -> float
 
     ...
 
@@ -44,9 +45,19 @@ class IslamicModel:
         Simulates the business operating over a given time_period, t, from t=0 to t=time_period and returns relevant data.
     """
     
-    def __init__(self, initial_capital: int, current_capital: int, profit_margin: float, expenses: float, bank_fee: float, bank_share: float, initial_capital_reinvestment: float, dividend_payment: float = 0.0) -> None:
+    def __init__(
+            self,
+            initial_capital: int,
+            current_capital: int,
+            profit_margin: float | Callable,
+            expenses: float | Callable,
+            bank_fee: float,
+            bank_share: float,
+            initial_capital_reinvestment: float | Callable,
+            dividend_payment: float | Callable = 0.0
+        ) -> None:
         """
-        Constructs the business model based on the parameters
+        Constructs the business model based on the parameters.
 
         Parameters
         ----------
@@ -56,11 +67,11 @@ class IslamicModel:
             current_capital : int
                 The capital amount the business currently has before the venture begins.
 
-            profit_margin : float
-                The percentage profit margin on the goods traded.
+            profit_margin : float | Callable
+                The percentage profit margin on the goods traded. Accepts a function which is time dependent with signature foo(t: int) -> float
             
-            expenses : float
-                The amount to be spent on expenses during operation of business.
+            expenses : float | Callable
+                The amount to be spent on expenses during operation of business. Accepts a function which is time dependent with signature foo(t: int) -> float
 
             bank_fee : float
                 The percentage profit the bank expects to make on the loaned amount.
@@ -69,11 +80,11 @@ class IslamicModel:
                 The percentage of net profit given to the bank as a form of debt repayment. This is in terms of dividend 
                 since the bank is in a profit/loss sharing parternship.
 
-            initial_capital_reinvestment : float
-                The amount from the initial_capital to be reinvested into the business.
+            initial_capital_reinvestment : float | Callable
+                The amount from the initial_capital to be reinvested into the business. Accepts a function which is time dependent with signature foo(t: int) -> float
             
-            dividend_payment : float = 0.0
-                The percentage of dividend expected to be paid to the business owner.
+            dividend_payment : float | Callable = 0.0
+                The percentage of dividend expected to be paid to the business owner. Accepts a function which is time dependent with signature foo(t: int) -> float
         """
         self.initial_capital = initial_capital
         self.current_capital = current_capital
@@ -100,7 +111,7 @@ class IslamicModel:
         }
 
     # simulation function
-    def simulate(self, time_period: int, grace_period: int, verbose: bool = False) -> tuple[int, int, float, float, float]:
+    def simulate(self, time_period: int, grace_period: int = 10, verbose: bool = False) -> tuple[int, int, float, float, float]:
         """
         Simulates the business operating over a given time_period, t, from t=0 to t=time_period.
 
@@ -129,7 +140,44 @@ class IslamicModel:
 
         total_loan_paid: float = 0.0
         for t in range(time_period+1):
+            # CHECK IF FUNCTION OR CONSTANT IS PASSED
+
+            # check for initial_capital_reinvestment
+            if isinstance(self.initial_capital_reinvestment, Callable):
+                initial_capital_reinvestment = self.initial_capital_reinvestment(t)
+            elif isinstance(self.initial_capital_reinvestment, float):
+                initial_capital_reinvestment = self.initial_capital_reinvestment
+            else:
+                raise TypeError(f"parameter \"initial_capital_reinvestment\" must be of type \'float\' or \'Callable\' with independent variable t. Not type {type(self.initial_capital_reinvestment)}")
             
+            # check for profit margin
+            if isinstance(self.profit_margin, Callable):
+                profit_margin = self.profit_margin(t)
+            elif isinstance(self.profit_margin, float):
+                profit_margin = self.profit_margin
+            else:
+                raise TypeError(f"parameter \"profit_margin\" must be of type \'float\' or \'Callable\' with independent variable t. Not type {type(self.profit_margin)}")
+            
+            # check for expenses
+            if isinstance(self.expenses, Callable):
+                expenses = self.expenses(t)
+            elif isinstance(self.expenses, float):
+                expenses = self.expenses
+            else:
+                raise TypeError(f"parameter \"expenses\" must be of type \'float\' or \'Callable\' with independent variable t. Not type {type(self.expenses)}")
+            
+            # check for dividend
+            if isinstance(self.dividend_payment, Callable):
+                dividend_payment = self.dividend_payment(t)
+            elif isinstance(self.dividend_payment, float):
+                dividend_payment = self.dividend_payment
+
+                if dividend_payment > 1.0 or dividend_payment < 0.0:
+                    raise ValueError(f"dividend_payment must be within interval [0, 1]. Not {dividend_payment}")
+            else:
+                raise TypeError(f"parameter \"dividend_payment\" must be of type \'float\' or \'Callable\' with independent variable t. Not type {type(self.dividend_payment)}")
+            
+            # verbose
             if verbose:
                 print(f"At {t = } month\nStarting Capital: {self.initial_capital:,.2f} | Current Capital: {self.current_capital:,.2f}")
 
@@ -139,17 +187,17 @@ class IslamicModel:
             self.model["current_capital"].append(float(self.current_capital))
             
             # get some amount from initial capital
-            if self.initial_capital - self.initial_capital_reinvestment >= 0:
-                investment = self.initial_capital_reinvestment + self.current_capital
-                self.initial_capital -= self.initial_capital_reinvestment
+            if self.initial_capital - initial_capital_reinvestment >= 0:
+                investment = initial_capital_reinvestment + self.current_capital
+                self.initial_capital -= initial_capital_reinvestment
             else:
                 investment = self.initial_capital + self.current_capital
             
             # invest that amount and make profit
-            profit = investment * self.profit_margin
+            profit = investment * profit_margin
 
             # subtract expenses + profit amount paid to bank, to get net profit
-            net_profit = profit - self.expenses
+            net_profit = profit - expenses
 
             # update loan amounts
             if self.bank_loan > 0:
@@ -173,11 +221,11 @@ class IslamicModel:
             total_loan_paid += bank_repayment
 
             # calculate business's own capital
-            self.current_capital += net_profit + investment
+            self.current_capital += (net_profit * (1.0 - dividend_payment)) + investment
 
             if verbose:
                 print(f"Amount invested: {investment:,.2f}")
-                print(f"Profit made (@{self.profit_margin:.2%}): {profit:,.2f} | Profit paid to bank (@{self.bank_share:.2%}): {bank_repayment:,.2f} | Net profit: {net_profit:,.2f}")
+                print(f"Profit made (@{profit_margin:.2%}): {profit:,.2f} | Profit paid to bank (@{self.bank_share:.2%}): {bank_repayment:,.2f} | Net profit: {net_profit:,.2f}")
                 print(f"Loan Remaining: {self.bank_loan:,.2f}")
                 print(f"Amount Reinvested: {self.current_capital:,.2f}\n")
 
@@ -206,7 +254,7 @@ class IslamicModel:
                 print(f"Status: SUCCESS")
                 print(f"Total period of payment {t = } months | {'Within' if within_grace_period else 'After'} grace period\n")
                 print(f"Loan Remaining: {self.bank_loan:,.2f} | Loan Paid: {total_loan_paid:,.2f}")
-                print(f"Profit made (@{self.profit_margin:.2%}): {profit:,.2f} | Final bank payment (@{self.bank_share:.2%}): {bank_repayment:,.2f} | Net profit: {net_profit:,.2f}")
+                print(f"Profit made (@{profit_margin:.2%}): {profit:,.2f} | Final bank payment (@{self.bank_share:.2%}): {bank_repayment:,.2f} | Net profit: {net_profit:,.2f}")
                 print(f"Amount Reinvested: {self.current_capital:,.2f}\n")
 
             case 2:
@@ -214,7 +262,7 @@ class IslamicModel:
                 print(f"Status: FAIL | Business is a LOSS MODEL")
                 print(f"Total period of payment {t = } months | {'Within' if within_grace_period else 'After'} grace period\n")
                 print(f"Loan Remaining: {self.bank_loan:,.2f} | Loan Paid: {total_loan_paid:,.2f}")
-                print(f"Profit made (@{self.profit_margin:.2%}): {profit:,.2f} | Final bank payment (@{self.bank_share:.2%}): {bank_repayment:,.2f} | Net profit: {net_profit:,.2f}")
+                print(f"Profit made (@{profit_margin:.2%}): {profit:,.2f} | Final bank payment (@{self.bank_share:.2%}): {bank_repayment:,.2f} | Net profit: {net_profit:,.2f}")
                 print(f"Amount Reinvested: {self.current_capital:,.2f}\n")
 
             case 3:
@@ -222,7 +270,7 @@ class IslamicModel:
                 print(f"Status: FAIL | Maximum time period reached")
                 print(f"Total period of payment {t = } months | {'Within' if within_grace_period else 'After'} grace period\n")
                 print(f"Loan Remaining: {self.bank_loan:,.2f} | Loan Paid: {total_loan_paid:,.2f}")
-                print(f"Profit made (@{self.profit_margin:.2%}): {profit:,.2f} | Final bank payment (@{self.bank_share:.2%}): {bank_repayment:,.2f} | Net profit: {net_profit:,.2f}")
+                print(f"Profit made (@{profit_margin:.2%}): {profit:,.2f} | Final bank payment (@{self.bank_share:.2%}): {bank_repayment:,.2f} | Net profit: {net_profit:,.2f}")
                 print(f"Amount Reinvested: {self.current_capital:,.2f}\n")
 
             case _:

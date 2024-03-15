@@ -31,7 +31,7 @@ The simulations are run in the `finance_modelling.ipynb` Jupyter Notebook and th
 
 ## Improvements
 As time progresses, I intend to make the following improvements:
-- [ ] Refactor the code to accept functions instead of simple constants for the expenses, profit margin, repayment, reinvestment, and so on.
+- [X] Refactor the code to accept functions instead of simple constants for the expenses, profit margin, reinvestment and dividend.
 - [ ] Include case studies using real world data.
 - [ ] Maybe make the logic work with given data in an array??? Though I don't know how that will work.
 - [ ] Come up with better documentation.
