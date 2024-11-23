@@ -173,7 +173,7 @@ class IslamicModel:
                 dividend_payment = self.dividend_payment
 
                 if dividend_payment > 1.0 or dividend_payment < 0.0:
-                    raise ValueError(f"dividend_payment must be within interval [0, 1]. Not {dividend_payment}")
+                    raise ValueError(f"dividend_payment must be within interval (0, 1). Not {dividend_payment}")
             else:
                 raise TypeError(f"parameter \"dividend_payment\" must be of type \'float\' or \'Callable\' with independent variable t. Not type {type(self.dividend_payment)}")
             
@@ -196,7 +196,7 @@ class IslamicModel:
             # invest that amount and make profit
             profit = investment * profit_margin
 
-            # subtract expenses + profit amount paid to bank, to get net profit
+            # subtract expenses to get net profit
             net_profit = profit - expenses
 
             # update loan amounts
@@ -204,6 +204,8 @@ class IslamicModel:
 
                 # calculate profit share for bank to be paid and update the amount
                 bank_repayment = net_profit * self.bank_share
+
+                # pay the bank and deduct from the net profit amount, which is the actual net profit
                 net_profit -= bank_repayment
 
                 # pay to the bank only what's needed and not more
